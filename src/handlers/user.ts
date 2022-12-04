@@ -2,18 +2,23 @@ import { Request, Response } from "express";
 import prisma from "../db";
 import { createJWT, hashPassword, comparePasswords } from "../modules/auth";
 
-export const createNewUser = async (req: Request, res: Response) => {
-  const hash = await hashPassword(req.body.password);
+export const createNewUser = async (req: Request, res: Response, next) => {
+  try {
+    const hash = await hashPassword(req.body.password);
+    const user = await prisma.user.create({
+      data: {
+        username: req.body.username,
+        password: hash,
+      },
+    });
 
-  const user = await prisma.user.create({
-    data: {
-      username: req.body.username,
-      password: hash,
-    },
-  });
-
-  const token = createJWT(user);
-  res.json({ token });
+    const token = createJWT(user);
+    res.json({ token });
+  } catch (e) {
+    // we'd probably want to inspect the (e) and return a more specific error
+    e.type = "input";
+    next(e);
+  }
 };
 
 export const signIn = async (req: Request, res: Response) => {
