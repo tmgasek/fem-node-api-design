@@ -2,11 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-declare global {
-  namespace Express {
-    interface Request {
-      user: string | jwt.JwtPayload;
-    }
+export type ReqUser = jwt.JwtPayload;
+
+declare module "express-serve-static-core" {
+  interface Request {
+    user?: ReqUser;
   }
 }
 
@@ -43,7 +43,6 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
   const [, token] = bearer.split(" ");
 
   if (!token) {
-    console.log("heere");
     res.status(401);
     res.send({ message: "Malformatted Bearer token" });
     return;
@@ -51,8 +50,8 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(payload);
-    req.user = payload;
+    console.log("jwt.verify paylod | auth |", payload);
+    req.user = payload as ReqUser;
     next();
   } catch (e) {
     console.error(e);
