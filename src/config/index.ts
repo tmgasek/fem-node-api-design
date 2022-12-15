@@ -12,6 +12,7 @@ if (stage === "production") {
 } else {
   envConfig = require("./local").default;
 }
+// this is some new shit
 
 // merge all configs into one object.
 // if I have a custom port in prod, it will override the port here.
